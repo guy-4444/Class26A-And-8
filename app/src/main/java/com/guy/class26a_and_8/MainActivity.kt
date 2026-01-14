@@ -7,13 +7,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.guy.class26a_and_8.databinding.ActivityMainBinding
-import kotlin.collections.iterator
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +48,42 @@ class MainActivity : AppCompatActivity() {
             btnMail()
         }
 
+        binding.btnSignOut.setOnClickListener {
+            signOut()
+        }
+
+        //updateUserUI()
+
+
+        binding.btnUpdateF.setOnClickListener {
+            updateUserDetails()
+        }
+
+        binding.btnLike.setOnClickListener {
+//            increaseLike("KaQkpHWoF5MD9mOwjlAN")
+            increaseLike(Firebase.auth.uid!!)
+        }
+
+        val db = Firebase.firestore
+        val docRef = db.collection("users").document(Firebase.auth.uid!!)
+        docRef.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                return@addSnapshotListener
+            }
+
+            binding.lblInfo.text = "likes: ${snapshot?.data?.get("likes")}"
+        }
+    }
+
+    private fun updateUserUI() {
+        val user = Firebase.auth.currentUser
+        if (user != null) {
+            binding.lblInfo.text = "${user.email} ${user.uid}"
+        }
+    }
+
+    private fun signOut() {
+        Firebase.auth.signOut()
     }
 
     private fun btnMail() {
@@ -118,7 +158,6 @@ class MainActivity : AppCompatActivity() {
         binding.lblInfo.text = str
     }
 
-
     private fun emailReturned(value: String?) {
         binding.lblInfo.text = value.toString()
     }
@@ -143,4 +182,29 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+
+    private fun increaseLike(userUid: String) {
+        val db = Firebase.firestore
+        db.collection("users")
+            .document(userUid)
+            .update("likes", FieldValue.increment(1))
+
+    }
+
+    private fun updateUserDetails() {
+        val userUid: String = Firebase.auth.uid!!
+
+        val user = hashMapOf(
+            "first" to "Ada",
+            "last" to "Lovelace",
+            "born" to 2002,
+        )
+
+        val db = Firebase.firestore
+        db.collection("users")
+            .document(userUid)
+            .set(user)
+    }
+
 }

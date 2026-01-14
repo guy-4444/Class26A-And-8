@@ -1,25 +1,21 @@
 package com.guy.class26a_and_8
 
+import android.animation.Animator
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.util.DisplayMetrics
+import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
-import com.google.firebase.database.getValue
-import com.guy.class26a_and_8.databinding.ActivityMainBinding
 import com.guy.class26a_and_8.databinding.ActivitySplashBinding
-import kotlin.collections.iterator
 
 class SplashActivity : AppCompatActivity() {
 
@@ -42,7 +38,44 @@ class SplashActivity : AppCompatActivity() {
             insets
         }
 
-        checkUser()
+        showView(binding.imgIcon)
+    }
+
+    fun showViewSlideDown(view: View) {
+        val displayMetrics = DisplayMetrics()
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
+        val height = displayMetrics.heightPixels
+        view.setY((-height / 2).toFloat())
+        view.setScaleX(0.0f)
+        view.setScaleY(0.0f)
+        view.animate().scaleY(1.0f).scaleX(1.0f).translationY(0f).setDuration(1400)
+            .setInterpolator(LinearOutSlowInInterpolator())
+    }
+
+    fun showView(view: View) {
+        val displayMetrics = DisplayMetrics()
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
+        view.setScaleX(0.0f)
+        view.setScaleY(0.0f)
+        view.animate()
+            .scaleY(1.75f)
+            .scaleX(1.75f)
+            .translationY(0f)
+            .setDuration(1000)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animator: Animator) {
+                    view.setVisibility(View.VISIBLE)
+                }
+
+                override fun onAnimationEnd(animator: Animator) {
+                    checkUser()
+                }
+
+                override fun onAnimationCancel(animator: Animator) {}
+
+                override fun onAnimationRepeat(animator: Animator) {}
+            })
     }
 
 
@@ -78,7 +111,14 @@ class SplashActivity : AppCompatActivity() {
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
+            .setLogo(R.drawable.ic_icon) // Set logo drawable
+            .setTosAndPrivacyPolicyUrls(
+                "https://example.com/terms.html",
+                "https://example.com/privacy.html",
+            )
             .build()
+
+
         signInLauncher.launch(signInIntent)
     }
 
